@@ -1,4 +1,8 @@
 # Automating-Infrastructure-with-DevOps
 
 download required package for python3 in ubuntu(local)
-sudo apt-get -y install dotenv
+
+
+sudo apt install python3-pi
+
+pip3 install python-dotenv
