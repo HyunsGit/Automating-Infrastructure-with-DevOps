@@ -1,9 +1,17 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
-import requests
+import os
 import sys
+import requests
+from dotenv import load_dotenv
+from pathlib import Path
 
-X_Subject_Token_Dir = "/object-storage-api/log/X-Subject-Token.txt"
+dotenv_path = Path('/object-storage-api/.env')
+load_dotenv(dotenv_path=dotenv_path)
+
+ACCESS_KEY = os.getenv('ACCESS_KEY')
+ACCESS_SECRET_KEY = os.getenv('ACCESS_SECRET_KEY')
+X_Subject_Token_Dir = os.getenv('X_Subject_Token_Dir')
 
 # Define credential to create
 credentials = {
@@ -13,8 +21,8 @@ credentials = {
                 "application_credential"
             ],
             "application_credential": {
-                "id": "60178ebe559b4875bc0ef5f55b3b60af",
-                "secret": "GQqvm10mfViScBVq3M9ps5oj-mKPYhjuqOGc6n-kaaBYr3OY1ijmhbgheerb5Y5r_VC_k3ac6U6DmDKgswXgJA"
+                "id": ACCESS_KEY,
+                "secret": ACCESS_SECRET_KEY
             }
         }
     }
@@ -24,11 +32,6 @@ url_post = "https://iam.kakaoi.io/identity/v3/auth/tokens"
 
 # A POST request to the API
 post_response = requests.post(url_post, json=credentials)
-
-# Print the response JSON
-#post_response_json = post_response.json()
-#print(post_response_json)
-
 
 # Extracting X-Subject-Token from the response headers
 x_subject_token = post_response.headers.get('X-Subject-Token')

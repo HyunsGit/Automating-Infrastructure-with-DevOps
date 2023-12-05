@@ -1,6 +1,15 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
+import os
 import requests
+from dotenv import load_dotenv
+from pathlib import Path
+
+dotenv_path = Path('/object-storage-api/.env')
+load_dotenv(dotenv_path=dotenv_path)
+
+ACCESS_KEY = os.getenv('ACCESS_KEY')
+ACCESS_SECRET_KEY = os.getenv('ACCESS_SECRET_KEY')
 
 # Define new data to create
 credentials = {
@@ -10,8 +19,8 @@ credentials = {
                 "application_credential"
             ],
             "application_credential": {
-                "id": "60178ebe559b4875bc0ef5f55b3b60af",
-                "secret": "GQqvm10mfViScBVq3M9ps5oj-mKPYhjuqOGc6n-kaaBYr3OY1ijmhbgheerb5Y5r_VC_k3ac6U6DmDKgswXgJA"
+                "id": ACCESS_KEY,
+                "secret": ACCESS_SECRET_KEY
             }
         }
     }
