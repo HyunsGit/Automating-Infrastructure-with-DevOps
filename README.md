@@ -4,5 +4,4 @@ download required package for python3 in ubuntu(local)
 
 
 sudo apt install python3-pi
-
 pip3 install python-dotenv
