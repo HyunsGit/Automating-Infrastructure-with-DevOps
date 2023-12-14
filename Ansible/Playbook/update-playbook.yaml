@@ -1,0 +1,11 @@
+---
+- name: update-all
+  hosts: all
+  become: true
+  tasks:
+    - name: Update Hosts
+      ansible.builtin.apt:
+        name: "*"
+        state: latest
+      register: update_host
+

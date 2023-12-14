@@ -1,0 +1,15 @@
+---
+- name: modify-all
+  hosts: all
+  become: true
+  tasks:
+    - name: Install KC_monitor_agent
+      ansible.builtin.script: /etc/ansible/scripts/kc_monitor_agent.sh
+
+    - name: Install KC_node_exporter
+      ansible.builtin.script: /etc/ansible/scripts/kc_node_exporter.sh
+
+    - name: Install MySQL_node_exporter
+      ansible.builtin.script: /etc/ansible/scripts/mysqld_node_exporter.sh
+      when:
+        "'databases' in group_names"
