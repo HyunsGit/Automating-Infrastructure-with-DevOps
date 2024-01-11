@@ -3,7 +3,7 @@
   hosts: all
   become: true
   tasks:
-    - name: Update Hosts
+    - name: UPDATE HOST
       ansible.builtin.apt:
         name: "*"
         state: latest

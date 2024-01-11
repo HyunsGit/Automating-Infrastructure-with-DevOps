@@ -25,6 +25,7 @@
       when: current_zone.stdout != my_zone
       notify:
         - update timezone
+        
     - name: ensure correct timezone link is set
       file:
         src: '/usr/share/zoneinfo/{{my_zone}}'

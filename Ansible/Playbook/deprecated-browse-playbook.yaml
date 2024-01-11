@@ -1,0 +1,41 @@
+---
+- name: browse-all
+  hosts: all
+  become: true
+  tasks:
+    - name: Check disk usage and grep for /dev/vda1
+      ansible.builtin.shell: df -h | grep /dev/vda1
+      register: disk_usage_test
+    
+    - name: Display output
+      ansible.builtin.debug:
+        var: disk_usage_test.stdout_lines
+
+    - name: check kubelet status
+      ansible.builtin.shell: systemctl status kubelet | grep Active
+      register: kubelet_status
+      ignore_errors: yes
+
+    - name: Display output
+      ansible.builtin.debug:
+        var: kubelet_status.stdout_lines
+
+    - name: update ubuntu server
+      ansible.builtin.shell: apt update -y 
+      when: ansible_os_family == "Debian"
+      register: update
+    - name: update centos server
+      ansible.builtin.shell: yum -y update
+      when: ansible_os_family == "RedHat"
+      register: update_redhat
+
+    - name: Install Apache on Centos Server
+      yum:
+        name: httpd
+        state: present
+      when: ansible_os_family == "RedHat"
+    - name: Install Apache2 on Ubuntu Server
+      apt:
+        name: apache2
+        state: present
+      when: ansible_os_family == "Debian"

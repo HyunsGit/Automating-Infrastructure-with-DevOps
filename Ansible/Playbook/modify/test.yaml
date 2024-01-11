@@ -1,0 +1,14 @@
+---
+- name: U01-disableRootLogin
+  hosts: tam-dev-ansible
+  become: true
+
+  tasks:
+    - name: check sshd status
+      shell: systemctl status sshd
+      register: sshd_status
+
+    - name: display output of sshd status
+      ansible.builtin.debug:
+        msg: "{{ sshd_status }}"
+      when: "'running' not in sshd_status.stdout"

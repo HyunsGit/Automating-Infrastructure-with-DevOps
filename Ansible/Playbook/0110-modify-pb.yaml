@@ -1,0 +1,31 @@
+---
+- name: modify-all
+  hosts: all
+  become: true
+  become_method: sudo
+  tasks:
+    - name: CHECK FOR SSH STATUS
+      service_facts:
+      register: service_state
+      notify:
+        - restart ssh
+    - debug:
+        var: service_state.ansible_facts.services["ssh.service"].state
+
+  handlers:
+    - name: restart ssh
+      service:
+        name: "ssh"
+        state: restarted
+
+
+
+    # - name: DISABLE ROOT LOGIN
+    #   lineinfile:
+    #         dest: /etc/ssh/sshd_config
+    #         regexp: '^PermitRootLogin'
+    #         line: "PermitRootLogin no"
+    #         state: present
+    #         backup: true
+      # notify:
+      #   - restart ssh

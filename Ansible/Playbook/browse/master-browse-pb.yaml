@@ -1,0 +1,107 @@
+---
+- name: browse-all
+  hosts: all
+  become: true
+  tasks: 
+    - name: VERIFY ROOT LOGIN METHOD(U01)
+      shell: cat /etc/ssh/sshd_config | grep -ic 'PermitRootLogin prohibit-password' | cut -d '.' -f 1
+      register: u01
+      changed_when: "u01.stdout | float == 1"
+
+    - name: VERIFY PASSWORD COMPLEXITY(U02)
+      shell: apt list --installed  2>/dev/null | grep -c 'libpam-pwquality' | cut -d '.' -f 1
+      register: u02
+      changed_when: "u02.stdout | float == 0"
+
+    - name: VERIFY ACCOUNT LOCK THRESHOLD(U03)
+      shell: egrep -ic "deny=[0-9]" /etc/pam.d/common-auth | cut -d '.' -f 1
+      register: u03
+      changed_when: "u03.stdout | float == 0"
+
+    - name: VERIFY /etc/shadow OWNER & PERMISSION(U08)
+      shell: "ls -al /etc/shadow"
+      register: shadow_config
+      changed_when: "'-r--------' not in shadow_config.stdout"
+
+    - name: VERIFY /etc/hosts OWNER & PERMISSION(U09)
+      shell: "ls -al /etc/hosts"
+      register: hosts_config
+      changed_when: "'-rw-r--r--' in hosts_config.stdout"
+
+    - name: VERIFY /etc/rsyslog.conf OWNER & PERMISSION(U11)
+      shell: "ls -al /etc/rsyslog.conf"
+      register: rsyslog_config
+      changed_when: "'-rw-r--r--' in rsyslog_config.stdout"
+
+    - name: VERIFY /etc/profile OWNER & PERMISSION(U14)
+      shell: "ls -al /etc/profile"
+      register: profile_config
+      changed_when: "'-rw-r--r--' in profile_config.stdout"
+
+      # must check /etc/cron* regarding U22
+    - name: VERIFY CRON CONFIG OWNER & PERMISSION(U22)
+      shell: "ls -ld /usr/bin/crontab"
+      register: cron_config
+      changed_when: "'-rwxr-sr-x' in cron_config.stdout"
+
+    - name: VERIFY MINIMUM PASSWORD LENGTH(U46)
+      shell: egrep -ic "#pass_min_len|pass_min_len [0-7]" /etc/login.defs | cut -d '.' -f 1
+      register: minpasslen
+      changed_when: "minpasslen.stdout | float == 1"
+
+    - name: VERIFY MAXIMUM PASSWORD LIFESPAN(U47)
+      shell: grep -icE '(^|\s)pass_max_days.*[91-99999]($|\s)' /etc/login.defs | cut -d '.' -f 1
+      register: maxpasslife
+      changed_when: "maxpasslife.stdout | float == 1"
+
+    - name: VERIFY MINIMUM PASSWORD LIFESPAN(U48)
+      shell: grep -icE '(^|\s)pass_min_days.*[0]($|\s)' /etc/login.defs | cut -d '.' -f 1
+      register: minpasslife
+      changed_when: "minpasslife.stdout | float == 1"
+
+    - name: VERIFY SESSION TIMEOUT(U54)
+      shell: grep -icE 'tmout=[0-6]0[0-10]|export tmout' /etc/profile | cut -d '.' -f 1
+      register: sessiontime
+      changed_when: "sessiontime.stdout | float <= 1"
+
+    - name: Check Kubelet status
+      ansible.builtin.shell: systemctl status kubelet | grep Active
+      register: kubelet_status
+      ignore_errors: yes
+      
+    - name: Verify KC_monitor_agent Installation
+      ansible.builtin.shell: systemctl status kic_monitor_agent | grep Active
+      register: kc_monitor_agent_status
+      ignore_errors: yes
+
+    - name: Verify KC Node Exporter Installation
+      ansible.builtin.shell: systemctl status node_exporter | grep Active
+      register: kc_node_exporter_status
+      ignore_errors: yes
+  
+    - name: Check MySQL status
+      ansible.builtin.shell: systemctl status mysql | grep Active
+      register: mysql_status
+      when:
+        "'databases' in group_names"
+      ignore_errors: yes
+
+    - name: KC Monitor Agent Status
+      ansible.builtin.debug:
+        var: kc_monitor_agent_status.stdout_lines
+
+    - name: KC Node Exporter Status
+      ansible.builtin.debug:
+        var: kc_node_exporter_status.stdout_lines
+
+    - name: Kubelet Status Output
+      ansible.builtin.debug:
+        var: kubelet_status.stdout_lines
+      when: 
+        "'kubernetes' in group_names"
+
+    - name: MySQL Status Output
+      ansible.builtin.debug:
+        var: mysql_status.stdout_lines
+      when: 
+        "'databases' in group_names"

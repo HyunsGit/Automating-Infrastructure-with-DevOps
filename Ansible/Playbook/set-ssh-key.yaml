@@ -1,0 +1,12 @@
+---
+- name: add-authorized-key
+  hosts: all
+  become: true
+  tasks:
+- name: Set authorized key taken from file
+  authorized_key:
+    user: ubuntu
+    state: present
+    key: "{{ lookup('~/Downloads/hans-pem.pem', '/home/ubuntu/.ssh/authorized_keys') }}"
+  when:
+    "'api-vm' in group_names"
