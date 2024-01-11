@@ -1,0 +1,39 @@
+---
+- name: browse-all
+  hosts: all
+  become: true
+
+  tasks: 
+    - name: VERIFY ROOT LOGIN METHOD(U01)
+      shell: cat /etc/ssh/sshd_config | grep -ic 'PermitRootLogin prohibit-password' | cut -d '.' -f 1
+      register: u01
+      changed_when: "u01.stdout | float == 1"
+    - name: VERIFY PASSWORD COMPLEXITY(U02)
+      shell: apt list --installed  2>/dev/null | grep -c 'libpam-pwquality' | cut -d '.' -f 1
+      register: u02
+      changed_when: "u02.stdout | float == 0"
+    - name: VERIFY ACCOUNT_LOCK_THRESHOLD(U03)
+      shell: egrep -c "deny=[0-9]" /etc/pam.d/common-auth | cut -d '.' -f 1
+      register: u03
+      changed_when: "u03.stdout | float == 0"
+    - name: VERIFY /etc/shadow OWNER & PERMISSION(U08)
+      shell: "ls -al /etc/shadow"
+      register: shadow_config
+      changed_when: "'-r--------' not in shadow_config.stdout"
+    - name: VERIFY /etc/hosts OWNER & PERMISSION(U09)
+      shell: "ls -al /etc/hosts"
+      register: hosts_config
+      changed_when: "'-rw-r--r--' in hosts_config.stdout"
+    - name: VERIFY /etc/rsyslog.conf OWNER & PERMISSION(U11)
+      shell: "ls -al /etc/rsyslog.conf"
+      register: rsyslog_config
+      changed_when: "'-rw-r--r--' in rsyslog_config.stdout"
+    - name: VERIFY /etc/profile OWNER & PERMISSION(U14)
+      shell: "ls -al /etc/profile"
+      register: profile_config
+      changed_when: "'-rw-r--r--' in profile_config.stdout"
+      # must check /etc/cron* regarding U22
+    - name: VERIFY CRON CONFIG OWNER & PERMISSION(U22)
+      shell: "ls -ld /usr/bin/crontab"
+      register: cron_config
+      changed_when: "'-rwxr-sr-x' in cron_config.stdout"
