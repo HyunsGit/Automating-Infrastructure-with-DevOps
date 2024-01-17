@@ -1,14 +1,116 @@
+# - name: passwordComplexity(U02)
+#   hosts: all
+#   become: true
+#   tasks:
+#     - package:
+#             name: libpam-pwquality
+#             state: present
+#     - replace:
+#             dest: /etc/security/pwquality.conf
+#             regexp: "{{ item.From }}"
+#             replace: "{{ item.To }}"
+#             backup: true
+#       with_items:
+#         - { From: '^dcredit.*', To: 'dcredit = -1' }
+#         - { From: '^ucredit.*', To: 'ucredit = -1' }
+#         - { From: '^lcredit.*', To: 'lcredit = -1' }
+#         - { From: '^ocredit.*', To: 'ocredit = -1' }
+#         - { From: '^minlen.*', To: 'minlen = 8' }
+#         - { From: '^difok.*', To: 'difok = N' }
+#     - file:
+#         path: "/etc.pam.d/common-password"
+#         state: absent
+#     - copy:
+#         dest: "/etc/pam.d/common-password"
+#         backup: true
+#         content: |
+#           password        requisite                       pam_pwquality.so retry=3 minlen=8 lcredit=-1 ucredit=-1 dcredit=-1 ocredit=-1
+#           password        [success=1 default=ignore]      pam_unix.so obscure use_authtok try_first_pass yescrypt
+#           password        requisite                       pam_deny.so
+#           password        required                        pam_permit.so
+
+
+# ---
+# - name: test
+#   hosts: tam-dev-ansible
+#   become: true
+#   tasks:
+#     - name: check sshd status
+#       shell: systemctl status sshd
+#       register: sshd_status
+#     - name: display output of sshd status
+#       ansible.builtin.debug:
+#         msg: "{{ sshd_status }}"
+#       when: "'running' not in sshd_status.stdout"
+
+# - name: U02-disableRootLogin
+#   hosts: tam-dev-ansible
+#   become: true
+#   tasks:
+#     - name: check sshd status
+#       shell: systemctl status apache2
+#       register: apache2_status
+#     - name: display output of apache status
+#       ansible.builtin.debug:
+#         msg: "{{ apache2_status }}"
+#       when: 
+#         - "'running' not in apache2_status.stdout"
+#         - "'apache2' not in services"
+
+# - name: U02-disableRootLogin
+#   hosts: tam-dev-ansible
+#   become: true
+#   tasks:
+#     - name: Gather the rpm package facts
+#       package_facts:
+#         manager: apt
+#     - name: Check whether a package called foobar is installed
+#       ansible.builtin.debug:
+#         msg: "{{ ansible_facts.packages['vim'] | length }}"
+#       when: "'vim' in ansible_facts.packages"
+  
+#   service_facts:
+# - debug:
+#     msg: Docker installed!
+#   when: "'docker' in services"
+
 ---
-- name: U01-disableRootLogin
-  hosts: tam-dev-ansible
+# - name: examine world writable files(U15)
+#   hosts: all
+#   become: true
+#   tasks:
+#     - name: search for world writable files
+#       shell: find / -type d \( -perm -g+w -or -perm -o+w \) -exec ls -adl {} \;
+#       register: wwf
+#     - set_fact:
+#         cron_config: "{{ wwf | map(attribute='path') | list}}"
+#     - debug:
+#         msg: "{{ cron_config }}"
+
+
+- name: examine world writable files(U15)
+  hosts: all
   become: true
-
+  vars:
+    file_vars:
+     - { spath: /, type: file, mode: o-w, pattern: "^.*?\\.(?:sh|fp|so|xml)$" }
   tasks:
-    - name: check sshd status
-      shell: systemctl status sshd
-      register: sshd_status
+  - name: Find files depending on REGEX pattern
+    find:
+     paths: "{{ item.spath }}"
+     file_type: "{{ item.type }}"
+     recurse: yes
+     patterns: "{{ item.pattern }}"
+     use_regex: yes
+    with_items:
+     - "{{ file_vars }}"
+    register: change_mode
 
-    - name: display output of sshd status
-      ansible.builtin.debug:
-        msg: "{{ sshd_status }}"
-      when: "'running' not in sshd_status.stdout"
+  # - debug:
+  #    var: change_mode
+
+  - name: remove world writable permissions
+    file:
+      path:  "{{ item.1.path }}"
+      mode:  o-w
+    loop: "{{ change_mode.results | subelements('files') }}"

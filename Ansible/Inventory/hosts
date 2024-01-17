@@ -1,0 +1,14 @@
+[vm]
+ gwdemo-bastion ansible_host=172.30.19.186
+ local1 ansible_host=172.30.19.86
+[kubernetes]
+ tam-cluster1 ansible_host=172.30.19.183
+
+
+[parent:children]
+vm
+kubernetes
+
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
