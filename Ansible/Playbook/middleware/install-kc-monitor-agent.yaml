@@ -1,19 +1,8 @@
 ---
-- name: modify-all
+- name: install kc_monitor_agent
   hosts: all
   become: true
   tasks:
-    # - name: INSTALL KC MONITOR_AGENT
-    #   ansible.builtin.script: /etc/ansible/scripts/kc_monitor_agent.sh
-
-    # - name: INSTALL KC NODE_EXPORTER
-    #   ansible.builtin.script: /etc/ansible/scripts/kc_node_exporter.sh
-
-    # - name: INSTALL MYSQL NODE_EXPORTER
-    #   ansible.builtin.script: /etc/ansible/scripts/mysqld_node_exporter.sh
-    #   when:
-    #     "'databases' in group_names"
-
     - name: download kc_monitor_agent package
       ansible.builtin.get_url:
         url: https://objectstorage.kr-central-2.kakaoi.io/v1/52867b7dc99d45fb808b5bc874cb5b79/kic-monitoring-agent/package/kic_monitor_agent_0.9.5_amd64.deb

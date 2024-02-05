@@ -1,0 +1,15 @@
+---
+- name: update prometheus.yml config
+  hosts: all
+  become: true
+  tasks:
+    - name: remove old prometheus.yml
+      file:
+        path: "/etc/prometheus/prometheus.yml"
+        state: absent
+    - name: copy prometheus.yml to prometheus server
+      ansible.builtin.copy:
+        src: /etc/ansible/roles/prometheus.yml
+        dest: /etc/prometheus/prometheus.yml
+    - name: reload config
+      ansible.builtin.shell: curl -X POST http://localhost:9090/-/reload

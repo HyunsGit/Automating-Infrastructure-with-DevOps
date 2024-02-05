@@ -1,0 +1,45 @@
+---
+- name: install kc_monitor_agent
+  hosts: all
+  become: true
+  tasks:
+    - name: download and unextract kc_node_exporter package
+      ansible.builtin.unarchive:
+        src: https://github.com/prometheus/node_exporter/releases/download/v1.6.0/node_exporter-1.6.0.linux-amd64.tar.gz
+        dest: /home/ubuntu
+        remote_src: true
+    - name: add user for node_exporter
+      ansible.builtin.user:
+        name: node_exporter
+        create_home: false
+        system: true
+        shell: /bin/false
+    - name: copy node_exporter configs to /usr/local/bin
+      ansible.builtin.copy:
+        src: /home/ubuntu/node_exporter-1.6.0.linux-amd64/node_exporter
+        dest: /usr/local/bin
+        remote_src: true
+    - name: change file ownership, group and permissions of node_exporter
+      ansible.builtin.file:
+        path: /usr/local/bin/node_exporter
+        owner: node_exporter
+        group: node_exporter
+        mode: 0755        
+    - name: copy systemd service file to server
+      ansible.builtin.copy:
+        src: /etc/ansible/roles/node_exporter.service
+        dest: /etc/systemd/system
+        # remote_src: true
+    - name: force systemd to reread configs
+      ansible.builtin.systemd:
+        daemon_reload: true
+    - name: restart node_exporter
+      ansible.builtin.systemd:
+        state: restarted
+        name: node_exporter
+    - name: enable node_exporter
+      ansible.builtin.systemd:
+        name: node_exporter
+        enabled: true
+
+      

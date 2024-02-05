@@ -7,5 +7,4 @@
       ansible.builtin.apt:
         name: "*"
         state: latest
-      register: update_host
 

@@ -1,0 +1,16 @@
+---
+- name: create user & update password
+  hosts: all
+  become: true
+  tasks:
+    - name: create_user
+      ansible.builtin.script: /etc/ansible/scripts/create_user.sh
+      when:
+        "'connect_message_vm' in group_names"
+      ignore_errors: true
+
+    - name: change_user_password
+      ansible.builtin.script: /etc/ansible/scripts/change_user_password.sh
+      when:
+        "'connect_message_vm' in group_names"
+      ignore_errors: true

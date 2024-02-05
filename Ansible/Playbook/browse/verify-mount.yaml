@@ -1,0 +1,15 @@
+---
+- name: check mount status
+  hosts: all
+  become: true
+  vars:
+    verify_nfsmounts:
+      - path: "10.203.68.91:/kicm-csp-prod-fia-nfs-01 /data1"
+  tasks: 
+    - name: verify if filesystem is mounted
+      shell: cat /etc/fstab
+      register: mnt
+      changed_when: 'item.path | string not in mnt.stdout'
+      ignore_errors: true
+      with_items: "{{ verify_nfsmounts }}"
+    

@@ -1,0 +1,42 @@
+---
+- name: early bird testing
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+   - name: check kc_monitor_agent existence 
+     ansible.builtin.stat: 
+       path: /lib/systemd/system/kic_monitor_agent.service
+     register: kc_monitor_agent
+   - name: kc_monitor_agent status
+     ansible.builtin.fail:
+       msg: "kc_monitor_agent not installed"
+     when: 
+      not kc_monitor_agent.stat.exists
+     ignore_errors: true
+   
+
+   - name: check node_exporter existence
+     ansible.builtin.stat:
+       path: /etc/systemd/system/node_exporter.service
+     register: node_exporter
+   - name: kc_node_exporter status
+     ansible.builtin.fail:
+       msg: "kc_node_exporter not installed"
+     when:
+      not kc_node_exporter.stat.exists
+     ignore_errors: true
+
+
+   - name: check mysql_node_exporter existence
+     ansible.builtin.stat:
+       path: /etc/systemd/system/mysqld-node-exporter.service
+     register: mysql_node_exporter
+   - name: mysql_node_exporter status
+     ansible.builtin.fail:
+       msg: "mysql_node_exporter not installed"
+     when:
+       not mysql_node_exporter.stat.exists
+     ignore_errors: true
+
+

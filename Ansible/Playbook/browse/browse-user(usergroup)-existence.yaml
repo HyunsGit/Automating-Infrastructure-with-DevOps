@@ -1,0 +1,28 @@
+---
+- name: early bird testing
+  hosts: all
+  become: true
+  gather_facts: false
+  tasks:
+   - name: check if desired users are present
+     getent:
+       database: passwd
+       key: "{{ item }}"
+       fail_key: true
+     ignore_errors: true
+     with_items:
+     - sysadm
+     - security
+     - deploy
+     - frodo
+     - neo
+
+   - name: check if desired group is present
+     getent:
+       database: group
+       key: "{{ item }}"
+       fail_key: true
+     ignore_errors: true
+     with_items:
+     - dktadm
+     - dktdev

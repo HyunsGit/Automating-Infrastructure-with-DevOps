@@ -6,12 +6,15 @@
     - name: Check Kubelet status
       ansible.builtin.shell: systemctl status kubelet | grep Active
       register: kubelet_status
+      when:
+        "'kubernetes' in group_names"
       ignore_errors: yes
       
     - name: Verify KC_monitor_agent Installation
       ansible.builtin.shell: systemctl status kic_monitor_agent | grep Active
       register: kc_monitor_agent_status
       ignore_errors: yes
+      
 
     - name: Verify KC Node Exporter Installation
       ansible.builtin.shell: systemctl status node_exporter | grep Active
@@ -24,6 +27,7 @@
       when:
         "'databases' in group_names"
       ignore_errors: yes
+
 
     - name: KC Monitor Agent Status
       ansible.builtin.debug:
